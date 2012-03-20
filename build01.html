@@ -6,7 +6,7 @@
 
 <script type="text/javascript">
 
-function initCanvas(){
+function initCanvas(canvas){
 
 	window.MOUSE_DOWN	= 'ontouchstart' in document ? 'touchstart' : 'mousedown';
 	window.MOUSE_UP		= 'ontouchend' in document ? 'touchend' : 'mouseup';
@@ -79,8 +79,9 @@ function initCanvas(){
 		}
 	}
 
-
-	var canvas = document.createElement('canvas');
+	canvas.oncontextmenu = function(e){
+		return false;
+	}
 	canvas.width = screen.width;
 	canvas.height = screen.height;
 
@@ -128,6 +129,8 @@ function initCanvas(){
 		ctx.restore();
 	}
 
+
+
 	var pointRadial = ctx.createRadialGradient(0, 0, 0, 0, 0, radiu);
 	pointRadial.addColorStop(0, color.a(1));
 	pointRadial.addColorStop(1, color.a(0));
@@ -144,6 +147,31 @@ function initCanvas(){
 		radial = null;
 	}
 
+	function clearRect(ctx, r, p){
+		ctx.clearRect(p.x - r, p.y - r, r * 2, r * 2);
+	}
+
+	function clearRound(ctx, r, p){
+		ctx.save();
+		ctx.globalCompositeOperation = 'destination-out';
+		ctx.beginPath();
+		ctx.arc(p.x, p.y, r, 0, Math.PI * 2, false);
+		ctx.fill();
+		ctx.restore();
+	}
+
+	function clearGradientRound(ctx, r, p){
+		ctx.save();
+		ctx.globalCompositeOperation = 'destination-out';
+		ctx.beginPath();
+		ctx.translate(p.x, p.y);
+		ctx.arc(0, 0, r, 0, Math.PI * 2, false);
+		ctx.fillStyle = pointRadial;
+		ctx.fill();
+		ctx.restore();
+		radial = null;
+	}
+
 	function mousemove_line(e){
 		e.preventDefault();
 		pointBuffer.add(ep(e));
@@ -154,15 +182,32 @@ function initCanvas(){
 
 	function mousemove_point(e){
 		e.preventDefault();
-		var pos = ep(e);
-		drawRadialGradient(ctx, radiu, pos);
+		drawRadialGradient(ctx, radiu, ep(e));
+	}
+
+	function mousemove_clearRect(e){
+		e.preventDefault();
+		clearRect(ctx, radiu, ep(e));
+	}
+
+	function mousemove_clearRound(e){
+		e.preventDefault();
+		clearRound(ctx, radiu, ep(e));
+	}
+
+	function mousemove_clearGradientRound(e){
+		e.preventDefault();
+		clearGradientRound(ctx, radiu, ep(e));
 	}
 
 	ctx.lineCap = 'round'; //'butt' 'square' 'round';
 	var drawMethod = mousemove_line;
-
+	var composites = [
+		'source-over', 'lighter', 'destination-out'
+	]
 	canvas.addEventListener(window.MOUSE_DOWN, function(e){
 		e.preventDefault();
+		ctx.globalCompositeOperation = composites[e.button];
 		drawMethod(e);
 		canvas.addEventListener(window.MOUSE_MOVE, drawMethod);
 	});
@@ -174,7 +219,7 @@ function initCanvas(){
 
 }
 
-initCanvas();
+initCanvas(document.createElement('canvas'));
 
 </script>
 
