@@ -63,6 +63,12 @@ CanvasUI.Position.prototype = {
 		this.bottom += this.top;
 		this.right += this.left;
 	},
+	moveTo : function(x, y){
+		this.top += y;
+		this.left += x;
+		this.bottom += y;
+		this.right += x;
+	},
 	move : function(x, y){
 		var pos = this.clone();
 		pos.top += y;
@@ -123,7 +129,7 @@ CanvasUI.Shape.prototype = {
 		var inRectX = p.x > pos.left && p.x < pos.right;
 		var inRectY = p.y > pos.top && p.y < pos.bottom;
 
-		if(this.cornerRadius){
+		if(this.cornerRadius <= 1){
 			return inRectX && inRectY;
 		} else if(!inRectX && !inRectY) {
 			return false;
@@ -226,6 +232,7 @@ CanvasUI.BasePanel.prototype = {
 			t += o.position.top || 0;
 			o = o.parent;
 		}
+
 		return this.position.move(l, t);
 	},
 	appendChild : function(bp){
@@ -252,6 +259,22 @@ CanvasUI.BasePanel.prototype = {
 		var w = this.position.width + outer.L + outer.R;
 		var h = this.position.height + outer.T + outer.B;
 		return new CanvasUI.Position(0, 0, w, h);
+	},
+	find : function(p){
+		var tar;
+		for(var i = 0, len = this.children.length; i < len; i++){
+			tar = this.children[i].head;
+			if(!tar){
+				continue;
+			}
+			if(tar.shape.hasPoint(p, tar.relocation())){
+				return tar;
+			} else {
+				tar = this.children[i].find(p);
+				if(!!tar) return tar;
+			}
+		}
+		return null;
 	}
 }
 CanvasUI.BasePanel.Apply = function(obj, left, top, width, height, context){
@@ -295,17 +318,41 @@ CanvasUI.CanvasDocument = function(){
 
 	var canvas = document.createElement('canvas');
 	var _ = this;
+	var __pos_offset__;
+	var __actived_panel__;
 	function mousedown(e){
+		e.preventDefault();
 		if(e.target != canvas) return;
-		console.log(_.children)
+		var evtPos = CanvasUI.EventPosition(e);
+		var head = _.find(evtPos);
+		if(!head || !head.parent) return;
+		__actived_panel__ = head.parent;
+
+		evtPos.x -= __actived_panel__.position.left;
+		evtPos.y -= __actived_panel__.position.top;
+		__actived_panel__.__runtime_pos_offset__ = evtPos;
+		document.addEventListener(CanvasUI.EventNames.MOUSE_MOVE, mousemove);
 	}
 	function mouseup(e){
-
+		e.preventDefault();
+		document.removeEventListener(CanvasUI.EventNames.MOUSE_MOVE, mousemove);
+		delete __actived_panel__.__runtime_pos_offset__;
+		__actived_panel__ = null;
 	}
+	function mousemove(e){
+		e.preventDefault();
+		var evtPos = CanvasUI.EventPosition(e);
+		evtPos.x -= __actived_panel__.__runtime_pos_offset__.x;
+		evtPos.y -= __actived_panel__.__runtime_pos_offset__.y;
+		__actived_panel__.position.left = evtPos.x;
+		__actived_panel__.position.top = evtPos.y;
+		__actived_panel__.show();
+	}
+
 	document.addEventListener(CanvasUI.EventNames.MOUSE_DOWN, mousedown);
 	document.addEventListener(CanvasUI.EventNames.MOUSE_UP, mouseup);
 
-	CanvasUI.BasePanel.Apply(this, 0, 0, 700, 300, canvas.getContext('2d'));
+	CanvasUI.BasePanel.Apply(this, 0, 0, 700, 500, canvas.getContext('2d'));
 	this.shape.lineWidth = 0;
 	this.shape.cornerRadius = 0;
 	this.backgroundStyle.shadowBlur = 0;
@@ -332,8 +379,6 @@ CanvasUI.CanvasDocument.prototype = {
 CanvasUI.Panel = function(left, top, w, h, ctx){
 	CanvasUI.BasePanel.Apply(this, left || 0, top || 0, w || 300, h || 150, ctx);
 	this.head = new CanvasUI.Head(this);
-	
-	//this.appendChild(this.head);
 }
 CanvasUI.Panel.prototype = {
 	beforeChildren : function(){
@@ -352,7 +397,7 @@ CanvasUI.Panel.prototype = {
 	}
 }
 CanvasUI.Head = function(panel){
-	CanvasUI.BasePanel.Apply(this, 0, 0, 2000, 20);
+	CanvasUI.BasePanel.Apply(this, 0, 0, 0, 20);
 
 	this.parent = panel;
 
@@ -368,6 +413,7 @@ CanvasUI.Head.prototype = {
 	relocation : function(){
 		var pos = this.parent.relocation();
 		pos.height = 24;
+		pos.init();
 		return pos;
 	},
 	checkEvent : function(e){
@@ -387,7 +433,7 @@ var panel2 = doc.createPanel(50, 50, 100, 120);
 
 panel.appendChild(panel2);
 
-panel2.setWidth(500);
+panel2.setWidth(200);
 
 
 doc.appendChild(panel);
