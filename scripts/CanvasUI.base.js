@@ -1,3 +1,11 @@
+/** 
+ *
+ * build01.js
+ * (c) 2011-2012 mk31415926535@gmail.com
+ * build01.js may be freely distributed under the MIT license.
+ *
+ * */
+ 
 var CanvasUI = {};
 
 CanvasUI.Color = function(r, g, b, a){

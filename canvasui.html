@@ -135,20 +135,8 @@ var panel = doc.createPanel(30, 30);
 var panel2 = doc.createPanel(50, 50, 100, 120);
 panel2.setWidth(200);
 
-
 doc.appendChild(panel);
 doc.appendChild(panel2);
-
-
-f = function() {return true;};
-g = function() {return false;};
-(function() {
-	if (g()) {
-		f = function f() {return false;};
-		function g() {return true;}
-	}
-})();
-alert(f());
 
 </script>
 
