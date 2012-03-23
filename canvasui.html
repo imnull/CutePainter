@@ -30,6 +30,13 @@ CanvasUI.CanvasDocument = function(){
 		evtPos.x -= __actived_panel__.position.left;
 		evtPos.y -= __actived_panel__.position.top;
 		__actived_panel__.__runtime_pos_offset__ = evtPos;
+
+		var idx = __actived_panel__.parent.children.indexOf(__actived_panel__);
+		if(idx > -1){
+			__actived_panel__.parent.children.splice(idx, 1);
+			__actived_panel__.parent.children.push(__actived_panel__);
+		}
+		_.show();
 		document.addEventListener(CanvasUI.EventNames.MOUSE_MOVE, mousemove);
 	}
 	function mouseup(e){
@@ -133,10 +140,12 @@ console.log(doc);
 
 var panel = doc.createPanel(30, 30);
 var panel2 = doc.createPanel(50, 50, 100, 120);
+var panel3 = doc.createPanel(50, 50, 50, 80);
 panel2.setWidth(200);
 
 doc.appendChild(panel);
 doc.appendChild(panel2);
+doc.appendChild(panel3);
 
 </script>
 

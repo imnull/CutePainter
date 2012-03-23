@@ -257,7 +257,7 @@ CanvasUI.BasePanel.prototype = {
 	},
 	find : function(p){
 		var tar;
-		for(var i = 0, len = this.children.length; i < len; i++){
+		for(var i = this.children.length - 1; i >= 0; i--){
 			tar = this.children[i].head;
 			if(!tar){
 				continue;
