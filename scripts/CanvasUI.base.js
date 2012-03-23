@@ -1,8 +1,8 @@
 /** 
  *
- * build01.js
+ * CanvasUI.base.js
  * (c) 2011-2012 mk31415926535@gmail.com
- * build01.js may be freely distributed under the MIT license.
+ * CanvasUI.base.js may be freely distributed under the MIT license.
  *
  * */
  
